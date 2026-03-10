@@ -357,25 +357,6 @@ export function ConvertModelToThreeObject(
       return leftTriangle.mat - rightTriangle.mat;
     });
 
-    function IsFiniteCoord3D(coord) {
-      return (
-        coord !== undefined &&
-        coord !== null &&
-        Number.isFinite(coord.x) &&
-        Number.isFinite(coord.y) &&
-        Number.isFinite(coord.z)
-      );
-    }
-
-    function IsFiniteCoord2D(coord) {
-      return (
-        coord !== undefined &&
-        coord !== null &&
-        Number.isFinite(coord.x) &&
-        Number.isFinite(coord.y)
-      );
-    }
-
     let threeGeometry = new THREE.BufferGeometry();
     let meshMaterialHandler = new ThreeMeshMaterialHandler(
       threeGeometry,
@@ -401,21 +382,18 @@ export function ConvertModelToThreeObject(
       let thirdVertex = mesh.GetVertex(triangle.v2);
 
       if (
-        !IsFiniteCoord3D(firstVertex) ||
-        !IsFiniteCoord3D(secondVertex) ||
-        !IsFiniteCoord3D(thirdVertex)
-      ) {
-        continue;
-      }
-
-      let firstNormal = mesh.GetNormal(triangle.n0);
-      let secondNormal = mesh.GetNormal(triangle.n1);
-      let thirdNormal = mesh.GetNormal(triangle.n2);
-
-      if (
-        !IsFiniteCoord3D(firstNormal) ||
-        !IsFiniteCoord3D(secondNormal) ||
-        !IsFiniteCoord3D(thirdNormal)
+        firstVertex === undefined ||
+        secondVertex === undefined ||
+        thirdVertex === undefined ||
+        !Number.isFinite(firstVertex.x) ||
+        !Number.isFinite(firstVertex.y) ||
+        !Number.isFinite(firstVertex.z) ||
+        !Number.isFinite(secondVertex.x) ||
+        !Number.isFinite(secondVertex.y) ||
+        !Number.isFinite(secondVertex.z) ||
+        !Number.isFinite(thirdVertex.x) ||
+        !Number.isFinite(thirdVertex.y) ||
+        !Number.isFinite(thirdVertex.z)
       ) {
         continue;
       }
@@ -433,75 +411,91 @@ export function ConvertModelToThreeObject(
       );
 
       if (triangle.HasVertexColors()) {
-        let firstVertexColor = mesh.GetVertexColor(triangle.c0);
-        let secondVertexColor = mesh.GetVertexColor(triangle.c1);
-        let thirdVertexColor = mesh.GetVertexColor(triangle.c2);
-
-        if (
-          firstVertexColor !== null &&
-          firstVertexColor !== undefined &&
-          secondVertexColor !== null &&
-          secondVertexColor !== undefined &&
-          thirdVertexColor !== null &&
-          thirdVertexColor !== undefined
-        ) {
-          let threeFirstVertexColor =
-            ConvertColorToThreeColor(firstVertexColor);
-          let threeSecondVertexColor =
-            ConvertColorToThreeColor(secondVertexColor);
-          let threeThirdVertexColor =
-            ConvertColorToThreeColor(thirdVertexColor);
-
-          vertexColors.push(
-            threeFirstVertexColor.r,
-            threeFirstVertexColor.g,
-            threeFirstVertexColor.b,
-            threeSecondVertexColor.r,
-            threeSecondVertexColor.g,
-            threeSecondVertexColor.b,
-            threeThirdVertexColor.r,
-            threeThirdVertexColor.g,
-            threeThirdVertexColor.b,
-          );
-        } else if (meshHasVertexColors) {
-          vertexColors.push(0, 0, 0, 0, 0, 0, 0, 0, 0);
-        }
+        let firstVertexColor = ConvertColorToThreeColor(
+          mesh.GetVertexColor(triangle.c0),
+        );
+        let secondVertexColor = ConvertColorToThreeColor(
+          mesh.GetVertexColor(triangle.c1),
+        );
+        let thirdVertexColor = ConvertColorToThreeColor(
+          mesh.GetVertexColor(triangle.c2),
+        );
+        vertexColors.push(
+          firstVertexColor.r,
+          firstVertexColor.g,
+          firstVertexColor.b,
+          secondVertexColor.r,
+          secondVertexColor.g,
+          secondVertexColor.b,
+          thirdVertexColor.r,
+          thirdVertexColor.g,
+          thirdVertexColor.b,
+        );
       } else if (meshHasVertexColors) {
         vertexColors.push(0, 0, 0, 0, 0, 0, 0, 0, 0);
       }
 
-      normals.push(
-        firstNormal.x,
-        firstNormal.y,
-        firstNormal.z,
-        secondNormal.x,
-        secondNormal.y,
-        secondNormal.z,
-        thirdNormal.x,
-        thirdNormal.y,
-        thirdNormal.z,
-      );
+      let firstNormal = mesh.GetNormal(triangle.n0);
+      let secondNormal = mesh.GetNormal(triangle.n1);
+      let thirdNormal = mesh.GetNormal(triangle.n2);
+
+      if (
+        firstNormal === undefined ||
+        secondNormal === undefined ||
+        thirdNormal === undefined ||
+        !Number.isFinite(firstNormal.x) ||
+        !Number.isFinite(firstNormal.y) ||
+        !Number.isFinite(firstNormal.z) ||
+        !Number.isFinite(secondNormal.x) ||
+        !Number.isFinite(secondNormal.y) ||
+        !Number.isFinite(secondNormal.z) ||
+        !Number.isFinite(thirdNormal.x) ||
+        !Number.isFinite(thirdNormal.y) ||
+        !Number.isFinite(thirdNormal.z)
+      ) {
+        normals.push(0, 0, 1, 0, 0, 1, 0, 0, 1);
+      } else {
+        normals.push(
+          firstNormal.x,
+          firstNormal.y,
+          firstNormal.z,
+          secondNormal.x,
+          secondNormal.y,
+          secondNormal.z,
+          thirdNormal.x,
+          thirdNormal.y,
+          thirdNormal.z,
+        );
+      }
 
       if (triangle.HasTextureUVs()) {
-        let firstTextureUv = mesh.GetTextureUV(triangle.u0);
-        let secondTextureUv = mesh.GetTextureUV(triangle.u1);
-        let thirdTextureUv = mesh.GetTextureUV(triangle.u2);
+        let firstUv = mesh.GetTextureUV(triangle.u0);
+        let secondUv = mesh.GetTextureUV(triangle.u1);
+        let thirdUv = mesh.GetTextureUV(triangle.u2);
 
         if (
-          IsFiniteCoord2D(firstTextureUv) &&
-          IsFiniteCoord2D(secondTextureUv) &&
-          IsFiniteCoord2D(thirdTextureUv)
+          firstUv === undefined ||
+          secondUv === undefined ||
+          thirdUv === undefined ||
+          !Number.isFinite(firstUv.x) ||
+          !Number.isFinite(firstUv.y) ||
+          !Number.isFinite(secondUv.x) ||
+          !Number.isFinite(secondUv.y) ||
+          !Number.isFinite(thirdUv.x) ||
+          !Number.isFinite(thirdUv.y)
         ) {
+          if (meshHasUVs) {
+            uvs.push(0, 0, 0, 0, 0, 0);
+          }
+        } else {
           uvs.push(
-            firstTextureUv.x,
-            firstTextureUv.y,
-            secondTextureUv.x,
-            secondTextureUv.y,
-            thirdTextureUv.x,
-            thirdTextureUv.y,
+            firstUv.x,
+            firstUv.y,
+            secondUv.x,
+            secondUv.y,
+            thirdUv.x,
+            thirdUv.y,
           );
-        } else if (meshHasUVs) {
-          uvs.push(0, 0, 0, 0, 0, 0);
         }
       } else if (meshHasUVs) {
         uvs.push(0, 0, 0, 0, 0, 0);
