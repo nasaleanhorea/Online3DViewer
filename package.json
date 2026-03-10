@@ -47,7 +47,8 @@
     "build_engine_module": "npm run update_engine_exports && rollup --config tools/rollup.js && tsc --project tools/tsconfig.json",
     "build_website_dev": "esbuild source/website/index.js --bundle --minify --global-name=OV --sourcemap --loader:.ttf=file --loader:.woff=file --loader:.svg=file --outfile=build/website_dev/o3dv.website.min.js",
     "build_website": "esbuild source/website/index.js --bundle --minify --global-name=OV --loader:.ttf=file --loader:.woff=file --loader:.svg=file --outfile=build/website/o3dv.website.min.js",
-    "update_engine_exports": "run-python3 tools/update_engine_exports.py"
+    "update_engine_exports": "run-python3 tools/update_engine_exports.py",
+    "prepare": "npm run create_package"
   },
   "devDependencies": {
     "@types/node": "^22.15.0",
